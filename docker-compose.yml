@@ -1,0 +1,86 @@
+# keycloak-lab: four containers on one private Docker network.
+#
+#   browser ──► web (nginx, :3000) ──/api/──► api (FastAPI, :8000)
+#      │                                          │
+#      └──────────► keycloak (:8180) ◄────────────┘  (the API only fetches public keys)
+#                       │
+#                    postgres (Keycloak's own database)
+#
+# Every port is bound to 127.0.0.1 so nothing here is reachable from your
+# network, only from this machine.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak", "-d", "keycloak"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.5
+    # start-dev: HTTP allowed, caches off, themes reload. Fine for a laptop,
+    # wrong for production. See docs/03-config-as-code.md, "start-dev vs start".
+    # --import-realm: import every file in /opt/keycloak/data/import on boot,
+    # but SKIP any realm that already exists in the database (trap: editing the
+    # file later changes nothing until you reset with `docker compose down -v`).
+    command: ["start-dev", "--import-realm"]
+    environment:
+
+
+
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+    ports:
+      - "127.0.0.1:8180:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # The image has no curl, so speak HTTP to the management port (9000) by hand.
+      test:
+        - CMD-SHELL
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          grep -q '"UP"' <&3
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+
+  api:
+    build: ./api
+    environment:
+      # Two URLs for ONE Keycloak, on purpose (docs/01-concepts.md, "Issuer"):
+      # - the issuer is the PUBLIC name, as written inside every token;
+      # - the keys are fetched over the private Docker network, because inside
+      #   this container "localhost" means the API container itself.
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/lab
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/lab/protocol/openid-connect/certs
+      API_AUDIENCE: lab-api
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

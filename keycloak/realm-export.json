@@ -1,0 +1,98 @@
+{
+  "realm": "lab",
+  "displayName": "Keycloak Lab",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "Lab administrator: sees everything, can call /api/admin" },
+      { "name": "manager", "description": "Lab manager: can call /api/manager" },
+      { "name": "user", "description": "Ordinary signed-in user" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "lab-api",
+      "name": "Keycloak Lab API",
+      "description": "Represents the FastAPI backend. Nothing signs in as this client; it exists so tokens can be addressed to it (aud) and so it can own client roles.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false
+    },
+    {
+      "clientId": "lab-web",
+      "name": "Keycloak Lab web page",
+      "description": "The browser page at http://localhost:3000. Public client: a browser cannot keep a secret, so it proves itself with PKCE instead.",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/",
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience: lab-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "lab-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "email": "alice@lab.local",
+      "firstName": "Alice",
+      "lastName": "Admin",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["default-roles-lab", "admin"],
+      "credentials": [{ "type": "password", "value": "alice-dev", "temporary": false }]
+    },
+    {
+      "username": "bob",
+      "email": "bob@lab.local",
+      "firstName": "Bob",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["default-roles-lab", "manager"],
+      "credentials": [{ "type": "password", "value": "bob-dev", "temporary": false }]
+    },
+    {
+      "username": "carol",
+      "email": "carol@lab.local",
+      "firstName": "Carol",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "realmRoles": ["default-roles-lab", "user"],
+      "credentials": [{ "type": "password", "value": "carol-dev", "temporary": false }]
+    }
+  ]
+}

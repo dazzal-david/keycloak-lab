@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keycloak Lab</title>
+  <link rel="stylesheet" href="/style.css">
+  <!-- type="module" lets app.js `import` keycloak-js straight from a CDN. No build step. -->
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <main>
+    <p id="status">Checking whether you are already signed in…</p>
+
+    <!-- Shown when nobody is signed in. -->
+    <section id="signed-out" hidden>
+      <h1>Keycloak Lab</h1>
+      <p>
+        Signing in sends you to Keycloak's own login page. This page never sees
+        your password; it only receives a token afterwards.
+      </p>
+      <button id="sign-in">Sign in</button>
+      <p class="hint">Dev users: alice / alice-dev (admin), bob / bob-dev (manager), carol / carol-dev (user)</p>
+    </section>
+
+    <!-- Shown after login. -->
+    <section id="signed-in" hidden>
+      <header>
+        <h1>Welcome, <span id="name"></span></h1>
+        <button id="sign-out">Sign out</button>
+      </header>
+
+      <dl class="facts">
+        <dt>Username</dt><dd id="username"></dd>
+        <dt>Email</dt><dd id="email"></dd>
+        <dt>Realm roles</dt><dd id="roles"></dd>
+        <dt>Token expires in</dt><dd id="expires"></dd>
+      </dl>
+
+      <h2>Your role sections</h2>
+      <p class="hint">
+        Each box below is shown only if your token has that role. This is
+        cosmetic: anyone can un-hide it in devtools. The real check is the API
+        call further down.
+      </p>
+      <div class="roles">
+        <section class="role" data-role="admin" hidden>
+          <h3>admin</h3>
+          <p>You can manage everything in the lab.</p>
+        </section>
+        <section class="role" data-role="manager" hidden>
+          <h3>manager</h3>
+          <p>You can see the team's reports.</p>
+        </section>
+        <section class="role" data-role="user" hidden>
+          <h3>user</h3>
+          <p>You can use the lab.</p>
+        </section>
+      </div>
+
+      <h2>What the API says</h2>
+      <p class="hint">
+        The page calls all three endpoints with your access token, whatever your
+        role. The API decides: 200 = allowed, 401 = bad token, 403 = wrong role.
+      </p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Endpoint</th><th>Who may call it</th><th>Result</th><th>Response</th></tr></thead>
+        <tbody id="api-results"></tbody>
+      </table>
+      </div>
+      <button id="call-api">Call the API again</button>
+
+      <h2>Your access token, decoded</h2>
+      <p class="hint">
+        A JWT is three base64url parts: header.payload.signature. Anyone can
+        decode the first two (try it); only Keycloak's private key can produce a
+        matching signature.
+      </p>
+      <h3>Header</h3>
+      <pre id="token-header"></pre>
+      <h3>Payload (the claims)</h3>
+      <pre id="token-payload"></pre>
+    </section>
+  </main>
+</body>
+</html>

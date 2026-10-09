@@ -1,0 +1,8 @@
+<!doctype html>
+<!--
+  keycloak-js loads this page in a hidden iframe when the app starts
+  (onLoad: 'check-sso'). Keycloak redirects the iframe here with either a code
+  (you already have a Keycloak session) or an error (you don't). This script
+  hands the URL back to the main page. Result: no visible redirect bounce.
+-->
+<html><body><script>parent.postMessage(location.href, location.origin)</script></body></html>

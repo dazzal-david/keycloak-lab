@@ -1,0 +1,117 @@
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --text: #1c1c1a;
+  --muted: #5f5f5a;
+  --border: #dddcd6;
+  --accent: #2f5bd3;
+  --ok: #1d7a3e;
+  --refused: #b3261e;
+  --code-bg: #f0efea;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161615;
+    --surface: #1f1f1d;
+    --text: #ecebe6;
+    --muted: #a3a29b;
+    --border: #3a3a36;
+    --accent: #8aa8ff;
+    --ok: #6cc98d;
+    --refused: #ff8a80;
+    --code-bg: #262624;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, sans-serif;
+}
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 { font-size: 1.75rem; margin: 0 0 12px; }
+h2 { font-size: 1.2rem; margin: 40px 0 8px; }
+h3 { font-size: 1rem; margin: 16px 0 6px; }
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+button {
+  font: inherit;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+}
+button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+#sign-out, #call-api { background: transparent; color: var(--accent); }
+#call-api { margin-top: 12px; }
+
+.hint { color: var(--muted); font-size: 0.9rem; }
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 16px 0;
+}
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; overflow-wrap: anywhere; }
+
+.roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.role {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  padding: 4px 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+/* Narrow screens scroll the table, not the page. */
+.table-wrap { overflow-x: auto; }
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th { color: var(--muted); font-weight: 600; }
+.mono { font-family: ui-monospace, monospace; }
+.ok { color: var(--ok); font-weight: 600; white-space: nowrap; }
+.refused { color: var(--refused); font-weight: 600; white-space: nowrap; }
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
